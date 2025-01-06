@@ -99,7 +99,7 @@ unsigned int Set_IGN_Delay_Time()
 	scanf(" %c", &IGN_Delay);
 	switch (IGN_Delay)
 	{
-	case'H':
+	case 'H':
 		printf("Set IGN Hour 0~23\n");
 		printf("Enter: ");
 		scanf(" %u", &IGN_Set_Hour);
@@ -112,7 +112,7 @@ unsigned int Set_IGN_Delay_Time()
 			SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x68, IGN_Set_Hour);
 		}
 		break;
-	case'M':
+	case 'M':
 		printf("Set IGN Min 0~59\n");
 		printf("Enter: ");
 		scanf(" %u", &IGN_Set_Min);
@@ -127,7 +127,7 @@ unsigned int Set_IGN_Delay_Time()
 		break;
 
 		break;
-	case'S':
+	case 'S':
 		printf("Set IGN Sec 0~59\n");
 		printf("Enter: ");
 		scanf(" %u", &IGN_Set_Sec);
@@ -160,7 +160,7 @@ unsigned int Set_UPS_Delay_Time()
 	scanf(" %c", &UPS_Delay);
 	switch (UPS_Delay)
 	{
-	case'H':
+	case 'H':
 		printf("Set UPS Hour 0~23\n");
 		printf("Enter: ");
 		scanf(" %u", &UPS_Set_Hour);
@@ -173,7 +173,7 @@ unsigned int Set_UPS_Delay_Time()
 			SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x74, UPS_Set_Hour);
 		}
 		break;
-	case'M':
+	case 'M':
 		printf("Set UPS Min 0~59\n");
 		printf("Enter: ");
 		scanf(" %u", &UPS_Set_Min);
@@ -188,7 +188,7 @@ unsigned int Set_UPS_Delay_Time()
 		break;
 
 		break;
-	case'S':
+	case 'S':
 		printf("Set UPS Sec 0~59\n");
 		printf("Enter: ");
 		scanf(" %u", &UPS_Set_Sec);
@@ -227,7 +227,7 @@ unsigned int Set_DO()
 	scanf(" %c", &DO);
 	switch (DO)
 	{
-	case'1':
+	case '1':
 		printf("Set 'H' or 'L' \n");
 		printf("Enter: ");
 		scanf(" %c", &DO1_Set);
@@ -248,7 +248,7 @@ unsigned int Set_DO()
 			printf("Enter Error\n");
 		}
 		break;
-	case'2':
+	case '2':
 		printf("Set 'H' or 'L' \n");
 		printf("Enter: ");
 		scanf(" %c", &DO2_Set);
@@ -269,7 +269,7 @@ unsigned int Set_DO()
 			printf("Enter Error\n");
 		}
 		break;
-	case'3':
+	case '3':
 		printf("Set 'H' or 'L' \n");
 		printf("Enter: ");
 		scanf(" %c", &DO3_Set);
@@ -290,7 +290,7 @@ unsigned int Set_DO()
 			printf("Enter Error\n");
 		}
 		break;
-	case'4':
+	case '4':
 		printf("Set 'H' or 'L' \n");
 		printf("Enter: ");
 		scanf(" %c", &DO4_Set);
@@ -342,7 +342,7 @@ unsigned int Set_POE()
 	scanf(" %c", &POE);
 	switch (POE)
 	{
-	case'1':
+	case '1':
 		printf("Set 'N': LAN3/POE is ON \nSet 'F': LAN3/POE is OFF \n");
 		printf("Enter: ");
 		scanf(" %c", &POE1);
@@ -366,7 +366,7 @@ unsigned int Set_POE()
 			printf("Enter Error\n");
 		}
 		break;
-	case'2':
+	case '2':
 		printf("Set 'N': LAN4/POE is ON \nSet 'F': LAN4/POE is OFF \n");
 		printf("Enter: ");
 		scanf(" %c", &POE2);
@@ -390,7 +390,7 @@ unsigned int Set_POE()
 			printf("Enter Error\n");
 		}
 		break;
-	case'3':
+	case '3':
 		printf("Set 'N': LAN5/POE is ON \nSet 'F': LAN5/POE is OFF \n");
 		printf("Enter: ");
 		scanf(" %c", &POE3);
@@ -414,7 +414,7 @@ unsigned int Set_POE()
 			printf("Enter Error\n");
 		}
 		break;
-	case'4':
+	case '4':
 		printf("Set 'N': LAN6/POE is ON \nSet 'F': LAN6/POE is OFF \n");
 		printf("Enter: ");
 		scanf(" %c", &POE4);
@@ -438,7 +438,7 @@ unsigned int Set_POE()
 			printf("Enter Error\n");
 		}
 		break;
-	case'5':
+	case '5':
 		printf("Set 'N': LAN7/POE is ON \nSet 'F': LAN7/POE is OFF \n");
 		printf("Enter: ");
 		scanf(" %c", &POE5);
@@ -462,7 +462,7 @@ unsigned int Set_POE()
 			printf("Enter Error\n");
 		}
 		break;
-	case'6':
+	case '6':
 		printf("Set 'N': LAN8/POE is ON \nSet 'F': LAN8/POE is OFF \n");
 		printf("Enter: ");
 		scanf(" %c", &POE6);
@@ -486,7 +486,7 @@ unsigned int Set_POE()
 			printf("Enter Error\n");
 		}
 		break;
-	case'7':
+	case '7':
 		printf("Set 'N': LAN9/POE is ON \nSet 'F': LAN9/POE is OFF \n");
 		printf("Enter: ");
 		scanf(" %c", &POE7);
@@ -510,7 +510,7 @@ unsigned int Set_POE()
 			printf("Enter Error\n");
 		}
 		break;
-	case'8':
+	case '8':
 		printf("Set 'N': LAN10/POE is ON \nSet 'F': LAN10/POE is OFF \n");
 		printf("Enter: ");
 		scanf(" %c", &POE8);
@@ -549,12 +549,12 @@ unsigned int Modem()
 	scanf(" %c", &Modem);
 	switch (Modem)
 	{
-	case'R':
+	case 'R':
 		Reset_3G = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x39);
 		Reset_3G = Reset_3G & 0xFD;
 		SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x39, Reset_3G);
 		break;
-	case'1':
+	case '1':
 		//change to SIM1
 		SIM1 = SMB_read(0xF040, 0x94, 0x39);
 		SIM1 = (SIM1 & 0xFE) | 0x01;
@@ -568,7 +568,7 @@ unsigned int Modem()
 		SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x39, Reset_3G);
 		//module reset
 		break;
-	case'2':
+	case '2':
 		//change to SIM2
 		SIM2 = SMB_read(0xF040, 0x94, 0x39);
 		SIM2 = SIM2 & 0xFE;
@@ -882,7 +882,7 @@ int main(int argc, char** argv)
 	printf("-------------------------------------------------------\n");
 	switch (Get_Set_Check)
 	{
-	case'G':
+	case 'G':
 		printf("'F':Get MCU Firmware Version \n");
 		printf("'I':Get IGN Status \n");
 		printf("'T':Get IGN & UPS Delay OFF Time \n");
@@ -895,15 +895,15 @@ int main(int argc, char** argv)
 		printf("-------------------------------------------------------\n");
 		switch (Get_Check)
 		{
-		case'F':
+		case 'F':
 			Get_MCU_FW();
 			break;
 
-		case'I':
+		case 'I':
 			Get_IGN_Status();
 			break;
 
-		case'T':
+		case 'T':
 			printf("'I':Get IGN Delay OFF Time \n");
 			printf("'U':Get UPS Delay OFF Time \n");
 			printf("Enter: ");
@@ -911,10 +911,10 @@ int main(int argc, char** argv)
 			printf("-------------------------------------------------------\n");
 			switch (Get_UPS_IGN_Check)
 			{
-			case'I':
+			case 'I':
 				Get_IGN_Delay_OFF_Times();
 				break;
-			case'U':
+			case 'U':
 				Get_UPS_Delay_OFF_Times();
 				break;
 			default:
@@ -922,10 +922,10 @@ int main(int argc, char** argv)
 			}
 			break;
 
-		case'D':
+		case 'D':
 			Get_DIO_Status();
 			break;
-		case'P':
+		case 'P':
 			Get_POE_Voltage(0x32, 0x33);
 			Get_POE_Current(0x30, 0x31);
 			printf("LAN3/POE: %uV, %umA\n", POE_Voltage, POE_Current);
@@ -957,10 +957,10 @@ int main(int argc, char** argv)
 			Get_POE2_Current(0x3C, 0x3D);
 			printf("LAN10/POE: %uV, %umA\n", POE_Voltage, POE_Current);
 			break;
-		case'V':
+		case 'V':
 			GetSystemInputVoltage();
 			break;
-		case'U':
+		case 'U':
 			Get_UPS_Voltage();
             Get_UPS_Current();
             Get_UPS_PerCent();
@@ -971,7 +971,7 @@ int main(int argc, char** argv)
 			break;
 		}
 		break;
-	case'S':
+	case 'S':
 		printf("'T':Set IGN & UPS Delay OFF Time \n");
 		printf("'D':Set DO Value \n");
 		printf("'P':Set POE ON or OFF \n");
@@ -982,7 +982,7 @@ int main(int argc, char** argv)
 		printf("-------------------------------------------------------\n");
 		switch (Set_Check)
 		{
-		case'T':
+		case 'T':
 			printf("'I':Set IGN Delay OFF Time \n");
 			printf("'U':Set UPS Delay OFF Time \n");
 			printf("Enter: ");
@@ -990,26 +990,26 @@ int main(int argc, char** argv)
 			printf("-------------------------------------------------------\n");
 			switch (Set_UPS_IGN_Check)
 			{
-			case'I':
+			case 'I':
 				Set_IGN_Delay_Time();
 				break;
-			case'U':
+			case 'U':
 				Set_UPS_Delay_Time();
 				break;
 			default:
 				break;
 			}
 			break;
-		case'D':
+		case 'D':
 			Set_DO();
 			break;
-		case'P':
+		case 'P':
 			Set_POE();
 			break;
-		case'M':
+		case 'M':
 			Modem();
 			break;
-		case'S':
+		case 'S':
 			Save_MCU();
 			break;
 
