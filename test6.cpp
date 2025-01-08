@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <chrono>
+#include <thread>
 #ifdef __GLIBC__
 #include <sys/perm.h>
 #endif
@@ -97,13 +98,27 @@ void LA_Ext()
 
   DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
 
-  D1_Value = DO_Value | 0x01;
-  SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D1_Value);
-  printf("DO1 set to High\n");
+  // D1_Value = DO_Value | 0x01;
+  // SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D1_Value);
+  // printf("DO1 set to High\n");
 
   D2_Value = DO_Value | 0x02;
   SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D2_Value);
   printf("DO2 set to High\n");
+
+  // sleep(0.1);
+  DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
+
+  D1_Value = DO_Value & 0xFE;
+  SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D1_Value);
+  printf("DO1 set to Low\n");
+
+  // sleep(0.1);
+
+  // D2_Value = DO_Value | 0x02;
+  // SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D2_Value);
+  // printf("DO2 set to High\n");
+
 }
 #pragma endregion
 
@@ -120,6 +135,8 @@ void LA_Off()
   D1_Value = DO_Value & 0xFE;
   SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D1_Value);
   printf("DO1 set to Low\n");
+
+  DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
 
   D2_Value = DO_Value & 0xFD;
   SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D2_Value);
@@ -138,13 +155,25 @@ void LA_Ret()
 
   DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
 
+
+  // sleep(0.1);
+
+  // D2_Value = DO_Value & 0xFD;
+  // SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D2_Value);
+  // printf("DO2 set to Low\n");
+  D2_Value = DO_Value | 0x02;
+  SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D2_Value);
+  printf("DO2 set to High\n");
+
+  sleep(0.1);
+  DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
+
   D1_Value = DO_Value | 0x01;
   SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D1_Value);
   printf("DO1 set to High\n");
 
-  D2_Value = DO_Value & 0xFD;
-  SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D2_Value);
-  printf("DO2 set to Low\n");
+
+
 
 }
 #pragma endregion
@@ -378,19 +407,31 @@ int main(int argc, char **argv)
   if (get_io_permission()) // Root
     return -EPERM;
   //
-
-  // Extend
-  LA_Ext();
-  sleep(8);
-
+  int i = 0;
   // Off
   LA_Off();
   sleep(2);
 
-  // Retract
+  // Extend
+  // for (i=0; i<100; i++)
+  // {
+  LA_Ext();
+  //   sleep(0.1);
+  // }
+  
+  sleep(8);
+  // this_thread::sleep_for(chrono::seconds(8));
+  // // Off
+  LA_Off();
+  sleep(2);
+
+  // // Retract
   LA_Ret();
   sleep(8);
+  // this_thread::sleep_for(chrono::seconds(8));
 
+  LA_Off();
+  sleep(2);
 }
 
 #pragma endregion
