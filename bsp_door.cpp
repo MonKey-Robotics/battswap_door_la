@@ -28,18 +28,23 @@
 
 unsigned int SMBus_Base = 0xF040;
 unsigned int SMBus_SlaveAddress = 0x94;
+unsigned int DI_Value;
+unsigned int DO_Value;
+unsigned int D1_Value;
+unsigned int D2_Value;
+unsigned int D3_Value;
 
-#pragma region root
-int get_io_permission(void)  // Admin
-{
-  if (iopl(3)) {
-    fprintf(stderr, "iopl(): %s\n", strerror(errno));
-    return errno;
-  }
+// #pragma region root
+// int get_io_permission(void)  // Admin
+// {
+//   if (iopl(3)) {
+//     fprintf(stderr, "iopl(): %s\n", strerror(errno));
+//     return errno;
+//   }
 
-  return 0;
-}
-#pragma endregion
+//   return 0;
+// }
+// #pragma endregion
 #pragma region SMBus R/W Function
 unsigned int SMB_read(int PORT, int DEVICE, int REG_INDEX)  // SMB Read
 {
@@ -75,68 +80,110 @@ unsigned int SMB_write(int PORT, int DEVICE, int REG_INDEX,
 }
 #pragma endregion
 
-#pragma region Linear Actuator Extend
+// LINEAR ACTUATOR EXTEND
 void LA_Ext() {
-  unsigned int DO_Value;
-  unsigned int D1_Value;
-  unsigned int D2_Value;
+  // unsigned int DO_Value;
+  // unsigned int D1_Value;
+  // unsigned int D2_Value;
 
   DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
 
   D2_Value = DO_Value | 0x02;
   SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D2_Value);
-  printf("DO2 set to High\n");
+  std::cout << "DO2 set to High\n";
 
   DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
 
   D1_Value = DO_Value & 0xFE;
   SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D1_Value);
-  printf("DO1 set to Low\n");
+  std::cout << "DO1 set to Low\n";
 }
-#pragma endregion
 
-#pragma region Linear Actuator Off
+
+// LINEAR ACTUATOR OFF
 void LA_Off() {
-  unsigned int DO_Value;
-  unsigned int D1_Value;
-  unsigned int D2_Value;
+  // unsigned int DO_Value;
+  // unsigned int D1_Value;
+  // unsigned int D2_Value;
 
   DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
 
   D1_Value = DO_Value & 0xFE;
   SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D1_Value);
-  printf("DO1 set to Low\n");
+  std::cout << "DO1 set to Low\n";
 
   DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
 
   D2_Value = DO_Value & 0xFD;
   SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D2_Value);
-  printf("DO2 set to Low\n");
+  std::cout << "DO2 set to Low\n";
 }
-#pragma endregion
 
-#pragma region Linear Actuator Retract
+
+// LINEAR ACTUATOR RETRACT
 void LA_Ret() {
-  unsigned int DO_Value;
-  unsigned int D1_Value;
-  unsigned int D2_Value;
-
+  // unsigned int DO_Value;
   DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
 
   D2_Value = DO_Value | 0x02;
   SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D2_Value);
-  printf("DO2 set to High\n");
+  std::cout << "DO2 set to High\n";
 
   sleep(0.1);
   DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
 
   D1_Value = DO_Value | 0x01;
   SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D1_Value);
-  printf("DO1 set to High\n");
+  std::cout << "DO1 set to High\n";
 }
-#pragma endregion
 
-#pragma region Set DO Function
+// LIMIT SWITCH
+std::pair<bool, bool> Limit_Switch_Feedback() {
+  bool ls_feedback_ext = false;
+  bool ls_feedback_ret = false;
+
+  DI_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x30);
+  // DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
+
+  // D3_Value = DO_Value | 0x04;
+  // SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D3_Value);
+  // printf("DO3 set to High\n");
+
+  // D3 OUTPUT VALUE LOW
+  // D3_Value = DO_Value & 0xFB;
+  // SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D3_Value);
+  // printf("DO3 set to Low\n");
+
+  // FULLY RETRACTED?
+  if ((DI_Value & 0x01) == 1)
+	{
+		printf("DI 1 = HIGH \n");
+    printf("Door fully Closed \n");
+    ls_feedback_ret = true;
+	}
+	else
+	{
+		printf("DI 1 = LOW \n");
+    printf("Door not fully closed \n");
+    ls_feedback_ret = false;
+	}
+
+  // FULLY EXTENDED?
+  if (((DI_Value >> 1) & 0x01) == 1)
+	{
+		printf("DI 2 = HIGH \n");
+    printf("Door fully opened \n");
+    ls_feedback_ext = true;
+	}
+	else
+	{
+		printf("DI 2 = LOW \n");
+    printf("Door not fully opened \n");
+    ls_feedback_ext = false;
+	}
+  return std::make_pair(ls_feedback_ext, ls_feedback_ret);
+}
+
 
 class BSPDoorServer : public rclcpp::Node {
  public:
@@ -154,41 +201,67 @@ class BSPDoorServer : public rclcpp::Node {
   void bsp_door_control(
       const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
       std::shared_ptr<std_srvs::srv::SetBool::Response> response) {
+
     // Extend
     if (request->data) {
       RCLCPP_INFO(this->get_logger(), "BSP door opening ... ");
       LA_Off();
       LA_Ext();
-      // sleep(10);
-      // LA_Off();
-      response->success = true;
-      response->message = "BSP door opened, preparing for battery swap";
-      RCLCPP_INFO(this->get_logger(), response->message.c_str());
+      sleep(11);
+      LA_Off();
     }
 
     // Retract
-    if (request->data == 0) {
+    if (!request->data) {
       RCLCPP_INFO(this->get_logger(), "BSP door closing ... ");
       LA_Off();
       LA_Ret();
-      // sleep(10);
-      // LA_Off();
-      response->success = true;
-      response->message = "BSP door closed, resuming work";
-      RCLCPP_INFO(this->get_logger(), response->message.c_str());
+      sleep(11);
+      LA_Off();
     }
 
     else {
       LA_Off();
-      response->success = false;
-      response->message = "Failed to actuate BSP door";
+    }
+
+  auto feedback = Limit_Switch_Feedback();
+  std::cout << "Extended: " << feedback.extend << ", Retracted: " << feedback.retract << "\n";
+
+  // Check for fully extended / fully opened door
+  if (feedback.extend && !feedback.retract)
+  {
+    if (request->data)
+    {
+      response->success = true;
+      response->message = "BSP door opened, preparing for battery swap";
+      RCLCPP_INFO(this->get_logger(), response->message.c_str());
+    }    
+  }
+
+  // Check for fully retracted / fully closed door
+  if (feedback.retract && !feedback.extend)
+  {
+    if (!request->data)
+    {
+      response->success = true;
+      response->message = "BSP door closed, resuming work";
       RCLCPP_INFO(this->get_logger(), response->message.c_str());
     }
+  }
+
+  else{
+    response->success = false;
+    response->message = "Failed to move BSP door to designated position";
+    RCLCPP_INFO(this->get_logger(), response->message.c_str());
+  }
+
   }
 
  private:
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr bsp_door_srv_;
 };
+
+
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<BSPDoorServer>("bsp_door_server");
