@@ -12,8 +12,8 @@
 #include <cstring>
 #include <thread>
 
-#include "std_srvs/srv/set_bool.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "std_srvs/srv/set_bool.hpp"
 #ifdef __GLIBC__
 #include <sys/perm.h>
 #endif
@@ -99,7 +99,6 @@ void LA_Ext() {
   std::cout << "DO1 set to Low\n";
 }
 
-
 // LINEAR ACTUATOR OFF
 void LA_Off() {
   // unsigned int DO_Value;
@@ -119,7 +118,6 @@ void LA_Off() {
   std::cout << "DO2 set to Low\n";
 }
 
-
 // LINEAR ACTUATOR RETRACT
 void LA_Ret() {
   // unsigned int DO_Value;
@@ -137,54 +135,6 @@ void LA_Ret() {
   std::cout << "DO1 set to High\n";
 }
 
-// LIMIT SWITCH
-std::pair<bool, bool> Limit_Switch_Feedback() {
-  bool ls_feedback_ext = false;
-  bool ls_feedback_ret = false;
-
-  DI_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x30);
-  // DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
-
-  // D3_Value = DO_Value | 0x04;
-  // SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D3_Value);
-  // printf("DO3 set to High\n");
-
-  // D3 OUTPUT VALUE LOW
-  // D3_Value = DO_Value & 0xFB;
-  // SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D3_Value);
-  // printf("DO3 set to Low\n");
-
-  // FULLY RETRACTED?
-  if ((DI_Value & 0x01) == 1)
-	{
-		printf("DI 1 = HIGH \n");
-    printf("Door fully Closed \n");
-    ls_feedback_ret = true;
-	}
-	else
-	{
-		printf("DI 1 = LOW \n");
-    printf("Door not fully closed \n");
-    ls_feedback_ret = false;
-	}
-
-  // FULLY EXTENDED?
-  if (((DI_Value >> 1) & 0x01) == 1)
-	{
-		printf("DI 2 = HIGH \n");
-    printf("Door fully opened \n");
-    ls_feedback_ext = true;
-	}
-	else
-	{
-		printf("DI 2 = LOW \n");
-    printf("Door not fully opened \n");
-    ls_feedback_ext = false;
-	}
-  return std::make_pair(ls_feedback_ext, ls_feedback_ret);
-}
-
-
 class BSPDoorServer : public rclcpp::Node {
  public:
   explicit BSPDoorServer(const std::string &node_name) : Node(node_name) {
@@ -198,10 +148,50 @@ class BSPDoorServer : public rclcpp::Node {
                 this->get_name());
   }
 
+  // LIMIT SWITCH
+  std::pair<bool, bool> Limit_Switch_Feedback() {
+    bool ls_feedback_ext = false;
+    bool ls_feedback_ret = false;
+
+    DI_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x30);
+    // DO_Value = SMB_read(SMBus_Base, SMBus_SlaveAddress, 0x31);
+
+    // D3_Value = DO_Value | 0x04;
+    // SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D3_Value);
+    // printf("DO3 set to High\n");
+
+    // D3 OUTPUT VALUE LOW
+    // D3_Value = DO_Value & 0xFB;
+    // SMB_write(SMBus_Base, SMBus_SlaveAddress, 0x31, D3_Value);
+    // printf("DO3 set to Low\n");
+
+    // FULLY RETRACTED?
+    if ((DI_Value & 0x01) == 1) {
+      printf("DI 1 = HIGH \n");
+      printf("Door fully Closed \n");
+      ls_feedback_ret = true;
+    } else {
+      printf("DI 1 = LOW \n");
+      printf("Door not fully closed \n");
+      ls_feedback_ret = false;
+    }
+
+    // FULLY EXTENDED?
+    if (((DI_Value >> 1) & 0x01) == 1) {
+      printf("DI 2 = HIGH \n");
+      printf("Door fully opened \n");
+      ls_feedback_ext = true;
+    } else {
+      printf("DI 2 = LOW \n");
+      printf("Door not fully opened \n");
+      ls_feedback_ext = false;
+    }
+    return std::make_pair(ls_feedback_ext, ls_feedback_ret);
+  }
+
   void bsp_door_control(
       const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
       std::shared_ptr<std_srvs::srv::SetBool::Response> response) {
-
     // Extend
     if (request->data) {
       RCLCPP_INFO(this->get_logger(), "BSP door opening ... ");
@@ -224,43 +214,38 @@ class BSPDoorServer : public rclcpp::Node {
       LA_Off();
     }
 
-  auto feedback = Limit_Switch_Feedback();
-  std::cout << "Extended: " << feedback.extend << ", Retracted: " << feedback.retract << "\n";
+    auto feedback = Limit_Switch_Feedback();
+    std::cout << "Extended: " << feedback.extend
+              << ", Retracted: " << feedback.retract << "\n";
 
-  // Check for fully extended / fully opened door
-  if (feedback.extend && !feedback.retract)
-  {
-    if (request->data)
-    {
-      response->success = true;
-      response->message = "BSP door opened, preparing for battery swap";
-      RCLCPP_INFO(this->get_logger(), response->message.c_str());
-    }    
-  }
+    // Check for fully extended / fully opened door
+    if (feedback.extend && !feedback.retract) {
+      if (request->data) {
+        response->success = true;
+        response->message = "BSP door opened, preparing for battery swap";
+        RCLCPP_INFO(this->get_logger(), response->message.c_str());
+      }
+    }
 
-  // Check for fully retracted / fully closed door
-  if (feedback.retract && !feedback.extend)
-  {
-    if (!request->data)
-    {
-      response->success = true;
-      response->message = "BSP door closed, resuming work";
+    // Check for fully retracted / fully closed door
+    if (feedback.retract && !feedback.extend) {
+      if (!request->data) {
+        response->success = true;
+        response->message = "BSP door closed, resuming work";
+        RCLCPP_INFO(this->get_logger(), response->message.c_str());
+      }
+    }
+
+    else {
+      response->success = false;
+      response->message = "Failed to move BSP door to designated position";
       RCLCPP_INFO(this->get_logger(), response->message.c_str());
     }
-  }
-
-  else{
-    response->success = false;
-    response->message = "Failed to move BSP door to designated position";
-    RCLCPP_INFO(this->get_logger(), response->message.c_str());
-  }
-
   }
 
  private:
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr bsp_door_srv_;
 };
-
 
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
