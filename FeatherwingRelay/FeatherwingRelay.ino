@@ -7,41 +7,21 @@
 #endif
 
 #define CAN_BAUDRATE (500000)
-#define PWM 5
-#define DIR 9
+#define SIGNAL 4
 
 Adafruit_MCP2515 mcp(CS_PIN);
 
-// 0x60F 0x08 0x11 0x30 0x01 0x00 0x00 0x00 0x00 (Retract)
-// 0x60F 0x08 0x11 0x30 0x02 0x00 0x00 0x00 0x00 (Extend)
+// 0x10F 0x08 0x11 0x50 0x01 0x00 0x00 0x00 0x00 (CLOSE)
+// 0x10F 0x08 0x11 0x50 0x02 0x00 0x00 0x00 0x00 (OPEN)
 
 // Define the two target messages
-const uint8_t RETRACT_MESSAGE[] = {0x08, 0x11, 0x30, 0x01, 0x00, 0x00, 0x00, 0x00};
-const uint8_t EXTEND_MESSAGE[]  = {0x08, 0x11, 0x30, 0x02, 0x00, 0x00, 0x00, 0x00};
-
-void off_lin_act()
-{
-  digitalWrite(PWM, LOW);
-  digitalWrite(DIR, LOW);
-}
-
-void extend_lin_act()
-{
-  digitalWrite(PWM, HIGH);
-  digitalWrite(DIR, LOW);
-}
-
-void retract_lin_act()
-{
-  digitalWrite(PWM, HIGH);
-  digitalWrite(DIR, HIGH);
-}
+const uint8_t OPEN_MESSAGE[]  = {0x08, 0x11, 0x50, 0x02, 0x00, 0x00, 0x00, 0x00};
+const uint8_t CLOSE_MESSAGE[]  = {0x08, 0x11, 0x50, 0x01, 0x00, 0x00, 0x00, 0x00};
 
 void setup() {
   Serial.begin(115200);
-  pinMode(DIR, OUTPUT);
-  pinMode(PWM, OUTPUT);
-  // while (!Serial) delay(10);
+  pinMode(SIGNAL, OUTPUT);
+  // while (1) delay(10);
 
   Serial.println("MCP2515 Receiver with Strict Message Filtering!");
 
@@ -59,7 +39,7 @@ void loop() {
     uint32_t receivedId = mcp.packetId();  // Get the received CAN ID
 
     // **Check if the received message has the correct CAN ID (0x60F)**
-    if (receivedId != 0x60F) {  
+    if (receivedId != 0x60E) {  
       return; // Ignore messages with different CAN IDs
     }
 
@@ -71,22 +51,22 @@ void loop() {
     }
 
     // **Check if the received message matches the RETRACT or EXTEND command**
-    if (memcmp(receivedData, RETRACT_MESSAGE, 8) == 0) {
-      Serial.println("Received RETRACT command!");
-      off_lin_act();
-      delay(100);
-      retract_lin_act();
-      delay(11000);
-      off_lin_act();
+    if (memcmp(receivedData, CLOSE_MESSAGE, 8) == 0) {
+      Serial.println("Received CLOSE command!");
+      digitalWrite(SIGNAL, LOW);
     } 
-    else if (memcmp(receivedData, EXTEND_MESSAGE, 8) == 0) {
-      Serial.println("Received EXTEND command!");
-      off_lin_act();
-      delay(100);
-      extend_lin_act();
-      delay(11000);
-      off_lin_act();
+    else if (memcmp(receivedData, OPEN_MESSAGE, 8) == 0) {
+      Serial.println("Received OPEN command!");
+      digitalWrite(SIGNAL, HIGH);
     } 
+
+    // if (memcmp(receivedData, OPEN_MESSAGE, 8) == 0) {
+    //   Serial.println("Received OPEN command!");
+    //   digitalWrite(SIGNAL, HIGH);
+    //   delay(10000);
+    //   digitalWrite(SIGNAL, LOW);
+    // } 
+
     else {
       Serial.println("Unknown CAN message received, ignoring.");
     }
