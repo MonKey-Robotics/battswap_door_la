@@ -1,6 +1,0 @@
-# Goal
-string command  # Command: "o", "c", or "s"
----
-# Result
-bool success
-string message
